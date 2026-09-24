@@ -124,7 +124,7 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew testUnstableDebugUnitTest --no-configuration-cache
+        run: ./gradlew testUnstableDebugUnitTest --no-configuration-cache -PAPP_ID="com.android.packageinstaller"
 
   build_and_upload_artifact:
     name: Build Unstable Release APK
@@ -192,7 +192,7 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew assembleUnstableRelease --no-configuration-cache
+        run: ./gradlew assembleUnstableRelease --no-configuration-cache -PAPP_ID="com.android.packageinstaller"
 
       - name: Upload APK
         uses: actions/upload-artifact@v7

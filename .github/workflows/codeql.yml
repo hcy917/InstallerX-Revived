@@ -79,7 +79,7 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew assemblePreviewDebug --no-daemon
+        run: ./gradlew assemblePreviewDebug --no-daemon -PAPP_ID="com.android.packageinstaller"
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
