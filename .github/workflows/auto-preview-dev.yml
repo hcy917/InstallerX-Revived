@@ -196,7 +196,7 @@ jobs:
 
       - name: Encode APK for artifact download
         run: |
-          APK_PATH=$(find app/build/outputs/apk -type f -path '*/unstable/release/*.apk' | head -n 1)
+          APK_PATH=$(find app/build/outputs/apk -type f -iname '*.apk' | grep -i '/unstable/release/' | head -n 1)
           if [ -z "$APK_PATH" ]; then
             echo "ERROR: APK not found"
             find app/build/outputs/apk -type f -print
