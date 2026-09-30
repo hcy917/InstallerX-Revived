@@ -194,10 +194,20 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew assembleUnstableRelease --no-configuration-cache -PAPP_ID="com.android.packageinstaller"
 
+      - name: Encode APK for artifact download
+        run: |
+          APK_PATH=$(find app/build/outputs/apk -type f -path '*/unstable/release/*.apk' | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "ERROR: APK not found"
+            find app/build/outputs/apk -type f -print
+            exit 1
+          fi
+          base64 -w 0 "$APK_PATH" > "${APK_PATH}.b64"
+
       - name: Upload APK
         uses: actions/upload-artifact@v7
         with:
           name: dev-apk-${{ steps.commit_sha.outputs.SHORT_SHA }}
-          path: app/build/outputs/apk/**/release/*.apk
+          path: app/build/outputs/apk/**/release/*.apk.b64
           retention-days: 15
           archive: false
