@@ -19,10 +19,6 @@ on:
       - 'gradle/**'
       - '.github/workflows/auto-preview-dev.yml'
 
-concurrency:
-  group: branch-ci-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   pre_job:
     name: Duplicate Check
@@ -38,7 +34,7 @@ jobs:
         with:
           # Core parameter: skip if an identical commit has already succeeded
           skip_after_successful_duplicate: 'true'
-          # Workflow concurrency handles cancellation; only skip successful duplicates here.
+          # Optional: cancel concurrent runs? 'never' = keep both running (good for dev merges)
           concurrent_skipping: 'never'
           # Optional: ignore certain paths (usually handled in on.push.paths)
           do_not_skip: '[]'
@@ -128,7 +124,7 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew testUnstableDebugUnitTest --no-configuration-cache
+        run: ./gradlew testUnstableDebugUnitTest --no-configuration-cache -PAPP_ID="com.android.packageinstaller"
 
   build_and_upload_artifact:
     name: Build Unstable Release APK
@@ -196,13 +192,23 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew assembleUnstableRelease --no-configuration-cache
+        run: ./gradlew assembleUnstableRelease --no-configuration-cache -PAPP_ID="com.android.packageinstaller"
+
+      - name: Encode APK for artifact download
+        run: |
+          APK_PATH=$(find app/build/outputs/apk -type f -iname '*.apk' | grep -i '/unstable/release/' | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "ERROR: APK not found"
+            find app/build/outputs/apk -type f -print
+            exit 1
+          fi
+          base64 -w 0 "$APK_PATH" > "${APK_PATH}.b64"
 
       - name: Upload APK
         uses: actions/upload-artifact@v7
         with:
           name: dev-apk-${{ steps.commit_sha.outputs.SHORT_SHA }}
-          path: app/build/outputs/apk/**/release/*.apk
+          path: app/build/outputs/apk/**/release/*.apk.b64
           retention-days: 15
           archive: false
 
